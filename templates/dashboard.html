@@ -3,7 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SensorHub Dashboard</title>
+    <title>
+      SensorHub Dashboard - Real-time environmental monitoring system
+    </title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link
       rel="stylesheet"
@@ -118,6 +120,8 @@
       </div>
     </div>
 
+    <!-- Navigation  -->
+    <!-- {% include 'components/navbar.html' %} -->
     <div
       id="content"
       class="container mx-auto px-4 py-8 opacity-0 transition-opacity duration-500"
@@ -129,7 +133,7 @@
         <div class="flex flex-col md:flex-row justify-between items-center">
           <div>
             <h1 class="text-3xl font-bold text-white mb-2">
-              <i class="fas fa-microchip mr-2"></i>Sensor Dashboard
+              <i class="fas fa-microchip mr-2"></i>SensorHub Dashboard
             </h1>
             <p class="text-blue-100">
               Real-time environmental monitoring system
@@ -463,6 +467,8 @@
       </footer>
     </div>
 
+    <!-- Footer -->
+    {% include 'components/footer.html' %}
     <script src="{{ url_for('static', filename='/dashboard.js') }}"></script>
   </body>
 </html>
