@@ -47,9 +47,14 @@ iot-hackathon/
 ├── templates/
 │   └── index.html
 │   └── dashboard.html
+│   └── components/
+│       └── navbar.html
+│       └── footer.html
 ├── instance/
-│   └── data.db
+│   └── sensor_data.db
 ├── static/
+│   └── index.js
+│   └── dashboard.js
 ├── sensors/
 │   └── arduino_code.ino
 ├── requirements.txt
