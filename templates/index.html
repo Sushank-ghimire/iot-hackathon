@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SensorHub - Environmental Monitoring</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
+
+      body {
+        font-family: "Inter", sans-serif;
+      }
+
+      * {
+        scroll-behavior: smooth;
+      }
+
+      *::-webkit-scrollbar {
+        display: none;
+      }
+      .hero-gradient {
+        background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
+      }
+
+      .card-gradient-1 {
+        background: linear-gradient(135deg, #ef4444 0%, #f97316 100%);
+      }
+
+      .card-gradient-2 {
+        background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+      }
+
+      .card-gradient-3 {
+        background: linear-gradient(135deg, #10b981 0%, #84cc16 100%);
+      }
+
+      .pulse {
+        animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.7;
+        }
+      }
+
+      .fade-in {
+        opacity: 0;
+        animation: fadeIn 0.8s ease-in forwards;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .animate-delay-100 {
+        animation-delay: 0.1s;
+      }
+
+      .animate-delay-200 {
+        animation-delay: 0.2s;
+      }
+
+      .animate-delay-300 {
+        animation-delay: 0.3s;
+      }
+
+      .animate-delay-400 {
+        animation-delay: 0.4s;
+      }
+
+      .animate-delay-500 {
+        animation-delay: 0.5s;
+      }
+
+      .animate-spin-slow {
+        animation: spin 3s linear infinite;
+      }
+
+      @keyframes spin {
+        from {
+          transform: rotate(0deg);
+        }
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .gauge {
+        position: relative;
+        width: 120px;
+        height: 120px;
+      }
+
+      .gauge-body {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        background-color: #e5e7eb;
+        overflow: hidden;
+      }
+
+      .gauge-fill {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        transform-origin: center bottom;
+        transition: transform 1s ease-out;
+      }
+
+      .gauge-cover {
+        width: 75%;
+        height: 75%;
+        background-color: white;
+        border-radius: 50%;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+
+      .loading-dots:after {
+        content: ".";
+        animation: dots 1.5s steps(5, end) infinite;
+      }
+
+      @keyframes dots {
+        0%,
+        20% {
+          content: ".";
+        }
+        40% {
+          content: "..";
+        }
+        60% {
+          content: "...";
+        }
+        80%,
+        100% {
+          content: "";
+        }
+      }
+
+      .air-quality-good {
+        color: #10b981;
+      }
+      .air-quality-moderate {
+        color: #f59e0b;
+      }
+      .air-quality-poor {
+        color: #f97316;
+      }
+      .air-quality-unhealthy {
+        color: #ef4444;
+      }
+    </style>
+  </head>
+  <body class="bg-gray-50 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between h-16">
+          <div class="flex items-center">
+            <div class="flex-shrink-0 flex items-center">
+              <i class="fas fa-microchip text-indigo-600 text-2xl mr-2"></i>
+              <span class="font-bold text-xl text-gray-900">SensorHub</span>
+            </div>
+          </div>
+          <div class="flex items-center overflow-hidden">
+            <a
+              href="/dashboard"
+              class="ml-4 px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+              >Dashboard</a
+            >
+            <a
+              href="#features"
+              class="ml-4 px-3 hidden md:flex py-2 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+              >Features</a
+            >
+            <a
+              href="#about"
+              class="ml-4 px-3 py-2 hidden md:flex rounded-md text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+              >About</a
+            >
+            <a
+              href="#contact"
+              class="ml-4 px-3 py-2 hidden md:flex rounded-md text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+              >Contact</a
+            >
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <div class="hero-gradient text-white">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
+        <div class="grid md:grid-cols-2 gap-8 items-center">
+          <div class="fade-in">
+            <h1 class="text-4xl md:text-5xl font-bold mb-4">
+              Real-time Environmental Monitoring
+            </h1>
+            <p class="text-xl text-blue-100 mb-8">
+              Get instant insights into your environment with our advanced
+              sensor network.
+            </p>
+            <div class="flex flex-wrap gap-4">
+              <a
+                href="/dashboard"
+                class="bg-white text-indigo-600 hover:bg-gray-100 px-6 py-3 rounded-lg font-medium shadow-md transition-colors duration-300"
+              >
+                View Dashboard
+              </a>
+              <a
+                href="#live-data"
+                class="bg-transparent border-2 border-white hover:bg-white hover:text-indigo-600 px-6 py-3 rounded-lg font-medium transition-colors duration-300"
+              >
+                See Live Data
+              </a>
+            </div>
+          </div>
+          <div class="relative flex justify-center">
+            <div
+              class="absolute w-64 h-64 bg-blue-400 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"
+            ></div>
+            <div
+              class="absolute w-64 h-64 bg-indigo-400 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"
+            ></div>
+            <div class="relative">
+              <div
+                class="bg-white p-6 rounded-2xl shadow-xl fade-in animate-delay-200"
+              >
+                <div class="flex items-center justify-between mb-4">
+                  <h3 class="text-lg font-semibold text-gray-800">
+                    Current Readings
+                  </h3>
+                  <div class="flex items-center">
+                    <span
+                      id="statusIndicator"
+                      class="h-2 w-2 rounded-full bg-green-500 mr-2 pulse"
+                    ></span>
+                    <span class="text-xs text-gray-500">Live</span>
+                  </div>
+                </div>
+                <div id="loadingState" class="py-8 flex flex-col items-center">
+                  <div
+                    class="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mb-4"
+                  ></div>
+                  <p class="text-gray-500 loading-dots">Fetching sensor data</p>
+                </div>
+                <div id="dataState" class="hidden">
+                  <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div class="bg-gray-50 p-3 rounded-lg">
+                      <div class="text-sm text-gray-500 mb-1">Temperature</div>
+                      <div class="flex items-center">
+                        <i
+                          class="fas fa-temperature-high text-red-500 mr-2"
+                        ></i>
+                        <span
+                          id="temperature"
+                          class="text-2xl font-bold text-gray-800"
+                          >--°C</span
+                        >
+                      </div>
+                    </div>
+                    <div class="bg-gray-50 p-3 rounded-lg">
+                      <div class="text-sm text-gray-500 mb-1">Humidity</div>
+                      <div class="flex items-center">
+                        <i class="fas fa-tint text-blue-500 mr-2"></i>
+                        <span
+                          id="humidity"
+                          class="text-2xl font-bold text-gray-800"
+                          >--%</span
+                        >
+                      </div>
+                    </div>
+                  </div>
+                  <div class="bg-gray-50 p-3 rounded-lg mb-4">
+                    <div class="text-sm text-gray-500 mb-1">Air Quality</div>
+                    <div class="flex items-center">
+                      <i class="fas fa-wind text-green-500 mr-2"></i>
+                      <span
+                        id="airQuality"
+                        class="text-2xl font-bold text-gray-800"
+                        >--</span
+                      >
+                    </div>
+                  </div>
+                  <div
+                    class="text-xs text-gray-500 flex justify-between items-center"
+                  >
+                    <span>Last updated:</span>
+                    <span id="timestamp" class="font-medium">--</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Live Data Section -->
+    <section id="live-data" class="py-16 bg-white">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12 fade-in">
+          <h2 class="text-3xl font-bold text-gray-900 mb-4">
+            Live Environmental Data
+          </h2>
+          <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+            Monitor your environment in real-time with our advanced sensor
+            network.
+          </p>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-8 mb-12">
+          <!-- Temperature Card -->
+          <div
+            class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 fade-in animate-delay-100"
+          >
+            <div class="card-gradient-1 p-4 text-white">
+              <div class="flex justify-between items-center">
+                <h3 class="text-lg font-semibold">Temperature</h3>
+                <i class="fas fa-temperature-high text-2xl"></i>
+              </div>
+            </div>
+            <div class="p-6 flex flex-col items-center">
+              <div class="gauge mb-4">
+                <div class="gauge-body">
+                  <div
+                    id="tempGaugeFill"
+                    class="gauge-fill bg-gradient-to-t from-red-600 to-orange-400"
+                    style="transform: rotate(0deg)"
+                  ></div>
+                </div>
+                <div class="gauge-cover">
+                  <span id="tempGaugeValue" class="text-xl">--°C</span>
+                </div>
+              </div>
+              <div class="text-sm text-gray-500 text-center">
+                <p>Normal range: 18°C - 26°C</p>
+                <p id="tempStatus" class="font-medium mt-2">Analyzing...</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Humidity Card -->
+          <div
+            class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 fade-in animate-delay-200"
+          >
+            <div class="card-gradient-2 p-4 text-white">
+              <div class="flex justify-between items-center">
+                <h3 class="text-lg font-semibold">Humidity</h3>
+                <i class="fas fa-tint text-2xl"></i>
+              </div>
+            </div>
+            <div class="p-6 flex flex-col items-center">
+              <div class="gauge mb-4">
+                <div class="gauge-body">
+                  <div
+                    id="humidityGaugeFill"
+                    class="gauge-fill bg-gradient-to-t from-blue-600 to-cyan-400"
+                    style="transform: rotate(0deg)"
+                  ></div>
+                </div>
+                <div class="gauge-cover">
+                  <span id="humidityGaugeValue" class="text-xl">--%</span>
+                </div>
+              </div>
+              <div class="text-sm text-gray-500 text-center">
+                <p>Normal range: 30% - 60%</p>
+                <p id="humidityStatus" class="font-medium mt-2">Analyzing...</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Air Quality Card -->
+          <div
+            class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 fade-in animate-delay-300"
+          >
+            <div class="card-gradient-3 p-4 text-white">
+              <div class="flex justify-between items-center">
+                <h3 class="text-lg font-semibold">Air Quality</h3>
+                <i class="fas fa-wind text-2xl"></i>
+              </div>
+            </div>
+            <div class="p-6 flex flex-col items-center">
+              <div class="gauge mb-4">
+                <div class="gauge-body">
+                  <div
+                    id="aqGaugeFill"
+                    class="gauge-fill bg-gradient-to-t from-green-600 to-lime-400"
+                    style="transform: rotate(0deg)"
+                  ></div>
+                </div>
+                <div class="gauge-cover">
+                  <span id="aqGaugeValue" class="text-xl">--</span>
+                </div>
+              </div>
+              <div class="text-sm text-gray-500 text-center">
+                <p>Scale: 0 (Best) - 300 (Worst)</p>
+                <p id="aqStatus" class="font-medium mt-2">Analyzing...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Chart Section -->
+        <div
+          class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 p-6 fade-in animate-delay-400"
+        >
+          <h3 class="text-lg font-semibold text-gray-800 mb-4">
+            Historical Trends
+          </h3>
+          <div class="h-80">
+            <canvas id="historyChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="py-16 bg-gray-50">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12 fade-in">
+          <h2 class="text-3xl font-bold text-gray-900 mb-4">Key Features</h2>
+          <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+            Our environmental monitoring system provides comprehensive insights
+            into your surroundings.
+          </p>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-8">
+          <div
+            class="bg-white p-6 rounded-xl shadow-md border border-gray-100 fade-in animate-delay-100"
+          >
+            <div
+              class="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center mb-4"
+            >
+              <i class="fas fa-chart-line text-indigo-600 text-xl"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-2">
+              Real-time Monitoring
+            </h3>
+            <p class="text-gray-600">
+              Get instant updates on environmental conditions with our real-time
+              monitoring system.
+            </p>
+          </div>
+
+          <div
+            class="bg-white p-6 rounded-xl shadow-md border border-gray-100 fade-in animate-delay-200"
+          >
+            <div
+              class="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center mb-4"
+            >
+              <i class="fas fa-bell text-indigo-600 text-xl"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-2">
+              Alerts & Notifications
+            </h3>
+            <p class="text-gray-600">
+              Receive instant alerts when environmental conditions exceed your
+              defined thresholds.
+            </p>
+          </div>
+
+          <div
+            class="bg-white p-6 rounded-xl shadow-md border border-gray-100 fade-in animate-delay-300"
+          >
+            <div
+              class="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center mb-4"
+            >
+              <i class="fas fa-history text-indigo-600 text-xl"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-2">
+              Historical Analysis
+            </h3>
+            <p class="text-gray-600">
+              Track trends and patterns over time with comprehensive historical
+              data analysis.
+            </p>
+          </div>
+
+          <div
+            class="bg-white p-6 rounded-xl shadow-md border border-gray-100 fade-in animate-delay-400"
+          >
+            <div
+              class="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center mb-4"
+            >
+              <i class="fas fa-mobile-alt text-indigo-600 text-xl"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-2">
+              Mobile Access
+            </h3>
+            <p class="text-gray-600">
+              Monitor your environment from anywhere with our mobile-friendly
+              dashboard.
+            </p>
+          </div>
+
+          <div
+            class="bg-white p-6 rounded-xl shadow-md border border-gray-100 fade-in animate-delay-500"
+          >
+            <div
+              class="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center mb-4"
+            >
+              <i class="fas fa-cogs text-indigo-600 text-xl"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-2">
+              Customizable Settings
+            </h3>
+            <p class="text-gray-600">
+              Tailor the system to your specific needs with customizable
+              settings and thresholds.
+            </p>
+          </div>
+
+          <div
+            class="bg-white p-6 rounded-xl shadow-md border border-gray-100 fade-in animate-delay-500"
+          >
+            <div
+              class="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center mb-4"
+            >
+              <i class="fas fa-file-export text-indigo-600 text-xl"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-2">
+              Data Export
+            </h3>
+            <p class="text-gray-600">
+              Export your data in various formats for further analysis or
+              reporting.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Call to Action -->
+    <section class="py-16 bg-indigo-600 text-white">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <h2 class="text-3xl font-bold mb-4 fade-in">
+          Ready to monitor your environment?
+        </h2>
+        <p
+          class="text-xl text-indigo-100 mb-8 max-w-3xl mx-auto fade-in animate-delay-100"
+        >
+          Get started with our comprehensive environmental monitoring system
+          today.
+        </p>
+        <a
+          href="/dashboard"
+          class="inline-block bg-white text-indigo-600 hover:bg-gray-100 px-8 py-4 rounded-lg font-medium shadow-lg transition-colors duration-300 fade-in animate-delay-200"
+        >
+          View Full Dashboard
+        </a>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-gray-400 py-12">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid md:grid-cols-4 gap-8">
+          <div>
+            <div class="flex items-center mb-4">
+              <i class="fas fa-microchip text-indigo-400 text-2xl mr-2"></i>
+              <span class="font-bold text-xl text-white">SensorHub</span>
+            </div>
+            <p class="mb-4">
+              Advanced environmental monitoring for your home, office, or
+              industrial space.
+            </p>
+            <div class="flex space-x-4">
+              <a
+                href="#"
+                class="text-gray-400 hover:text-white transition-colors duration-300"
+              >
+                <i class="fab fa-twitter"></i>
+              </a>
+              <a
+                href="#"
+                class="text-gray-400 hover:text-white transition-colors duration-300"
+              >
+                <i class="fab fa-facebook"></i>
+              </a>
+              <a
+                href="#"
+                class="text-gray-400 hover:text-white transition-colors duration-300"
+              >
+                <i class="fab fa-instagram"></i>
+              </a>
+              <a
+                href="#"
+                class="text-gray-400 hover:text-white transition-colors duration-300"
+              >
+                <i class="fab fa-github"></i>
+              </a>
+            </div>
+          </div>
+
+          <div>
+            <h3 class="text-white font-medium mb-4">Quick Links</h3>
+            <ul class="space-y-2">
+              <li>
+                <a
+                  href="#"
+                  class="hover:text-white transition-colors duration-300"
+                  >Home</a
+                >
+              </li>
+              <li>
+                <a
+                  href="#features"
+                  class="hover:text-white transition-colors duration-300"
+                  >Features</a
+                >
+              </li>
+              <li>
+                <a
+                  href="#about"
+                  class="hover:text-white transition-colors duration-300"
+                  >About</a
+                >
+              </li>
+              <li>
+                <a
+                  href="#contact"
+                  class="hover:text-white transition-colors duration-300"
+                  >Contact</a
+                >
+              </li>
+            </ul>
+          </div>
+
+          <div>
+            <h3 class="text-white font-medium mb-4">Resources</h3>
+            <ul class="space-y-2">
+              <li>
+                <a
+                  href="#"
+                  class="hover:text-white transition-colors duration-300"
+                  >Documentation</a
+                >
+              </li>
+              <li>
+                <a
+                  href="#"
+                  class="hover:text-white transition-colors duration-300"
+                  >API</a
+                >
+              </li>
+              <li>
+                <a
+                  href="#"
+                  class="hover:text-white transition-colors duration-300"
+                  >Support</a
+                >
+              </li>
+              <li>
+                <a
+                  href="#"
+                  class="hover:text-white transition-colors duration-300"
+                  >Privacy Policy</a
+                >
+              </li>
+            </ul>
+          </div>
+
+          <div id="contact">
+            <h3 class="text-white font-medium mb-4">Contact Us</h3>
+            <ul class="space-y-2">
+              <li class="flex items-center">
+                <i class="fas fa-envelope mr-2"></i>
+                <a
+                  href="mailto:info@sensorhub.com"
+                  class="hover:text-white transition-colors duration-300"
+                  >info@sensorhub.com</a
+                >
+              </li>
+              <li class="flex items-center">
+                <i class="fas fa-phone mr-2"></i>
+                <a
+                  href="tel:+1234567890"
+                  class="hover:text-white transition-colors duration-300"
+                  >+977 0000000000</a
+                >
+              </li>
+              <li class="flex items-center">
+                <i class="fas fa-map-marker-alt mr-2"></i>
+                <span>Naya Thimi, Bhaktapur</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="border-t border-gray-800 mt-12 pt-8 text-center">
+          <p>&copy; 2023 SensorHub. All rights reserved.</p>
+        </div>
+      </div>
+    </footer>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const PRODUCTION_URI = "https://kdbvglw2-5000.asse.devtunnels.ms";
+        const TESTING_URI = "http://127.0.0.1:5000/api/all";
+
+        function loadHistoricalData() {
+          fetch(PRODUCTION_URI + "/api/all")
+            .then((response) => {
+              if (!response.ok) {
+                throw new Error("Failed to fetch historical data");
+              }
+              return response.json();
+            })
+            .then((historyData) => {
+              updateChartWithHistoricalData(historyData);
+            })
+            .catch((error) => {
+              console.error("Error loading historical data:", error);
+            });
+        }
+
+        // Intersection Observer for fade-in animations
+        const fadeElements = document.querySelectorAll(".fade-in");
+        const observer = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                entry.target.style.opacity = "1";
+              }
+            });
+          },
+          { threshold: 0.1 }
+        );
+
+        fadeElements.forEach((element) => {
+          observer.observe(element);
+        });
+
+        function fetchSensorData() {
+          fetch(PRODUCTION_URI + "/api/latest")
+            .then((response) => {
+              if (!response.ok) {
+                throw new Error("Network response was not ok");
+              }
+              return response.json();
+            })
+            .then((data) => {
+              document.getElementById("loadingState").classList.add("hidden");
+              document.getElementById("dataState").classList.remove("hidden");
+              updateUI(data);
+              setTimeout(fetchSensorData, 30000); // Update every 30 seconds
+            })
+            .catch((error) => {
+              console.error("Error fetching sensor data:", error);
+              document
+                .getElementById("statusIndicator")
+                .classList.remove("bg-green-500");
+              document
+                .getElementById("statusIndicator")
+                .classList.add("bg-red-500");
+              setTimeout(fetchSensorData, 5000);
+            });
+        }
+
+        function updateUI(data) {
+          document.getElementById("temperature").textContent =
+            data.temperature.toFixed(1) + "°C";
+          document.getElementById("humidity").textContent =
+            data.humidity.toFixed(1) + "%";
+          document.getElementById("airQuality").textContent = data.air_quality;
+
+          const timestamp = new Date(data.timestamp);
+          document.getElementById("timestamp").textContent =
+            timestamp.toLocaleTimeString();
+
+          updateGauge(
+            "tempGaugeFill",
+            "tempGaugeValue",
+            data.temperature,
+            40,
+            "°C"
+          );
+          updateGauge(
+            "humidityGaugeFill",
+            "humidityGaugeValue",
+            data.humidity,
+            100,
+            "%"
+          );
+          updateGauge("aqGaugeFill", "aqGaugeValue", data.air_quality, 300, "");
+
+          updateStatusMessages(data);
+        }
+
+        function updateGauge(fillId, valueId, value, max, unit) {
+          const percentage = Math.min(value / max, 1);
+          const rotation = percentage * 180;
+          document.getElementById(
+            fillId
+          ).style.transform = `rotate(${rotation}deg)`;
+          document.getElementById(valueId).textContent =
+            value.toFixed(1) + unit;
+        }
+
+        function updateStatusMessages(data) {
+          const tempStatus = document.getElementById("tempStatus");
+          if (data.temperature > 30) {
+            tempStatus.textContent = "Too Hot";
+            tempStatus.className = "font-medium mt-2 text-red-600";
+          } else if (data.temperature < 18) {
+            tempStatus.textContent = "Too Cold";
+            tempStatus.className = "font-medium mt-2 text-blue-600";
+          } else {
+            tempStatus.textContent = "Optimal";
+            tempStatus.className = "font-medium mt-2 text-green-600";
+          }
+
+          const humidityStatus = document.getElementById("humidityStatus");
+          if (data.humidity > 60) {
+            humidityStatus.textContent = "Too Humid";
+            humidityStatus.className = "font-medium mt-2 text-blue-600";
+          } else if (data.humidity < 30) {
+            humidityStatus.textContent = "Too Dry";
+            humidityStatus.className = "font-medium mt-2 text-yellow-600";
+          } else {
+            humidityStatus.textContent = "Optimal";
+            humidityStatus.className = "font-medium mt-2 text-green-600";
+          }
+
+          const aqStatus = document.getElementById("aqStatus");
+          if (data.air_quality < 50) {
+            aqStatus.textContent = "Good";
+            aqStatus.className = "font-medium mt-2 text-green-600";
+            document.getElementById("aqGaugeFill").className =
+              "gauge-fill bg-gradient-to-t from-green-600 to-lime-400";
+          } else if (data.air_quality < 100) {
+            aqStatus.textContent = "Moderate";
+            aqStatus.className = "font-medium mt-2 text-yellow-600";
+            document.getElementById("aqGaugeFill").className =
+              "gauge-fill bg-gradient-to-t from-yellow-600 to-yellow-400";
+          } else if (data.air_quality < 150) {
+            aqStatus.textContent = "Unhealthy for Sensitive Groups";
+            aqStatus.className = "font-medium mt-2 text-orange-600";
+            document.getElementById("aqGaugeFill").className =
+              "gauge-fill bg-gradient-to-t from-orange-600 to-orange-400";
+          } else {
+            aqStatus.textContent = "Unhealthy";
+            aqStatus.className = "font-medium mt-2 text-red-600";
+            document.getElementById("aqGaugeFill").className =
+              "gauge-fill bg-gradient-to-t from-red-600 to-red-400";
+          }
+        }
+
+        function updateChartWithHistoricalData(dataArray) {
+          const labels = [];
+          const tempData = [];
+          const humidityData = [];
+          const aqData = [];
+
+          dataArray.forEach((entry) => {
+            const time = new Date(entry.timestamp);
+            labels.push(
+              time.getHours().toString().padStart(2, "0") +
+                ":" +
+                time.getMinutes().toString().padStart(2, "0")
+            );
+            tempData.push(entry.temperature.toFixed(1));
+            humidityData.push(entry.humidity.toFixed(1));
+            aqData.push(entry.air_quality.toFixed(0));
+          });
+
+          const ctx = document.getElementById("historyChart").getContext("2d");
+
+          if (window.sensorChart) {
+            window.sensorChart.data.labels = labels;
+            window.sensorChart.data.datasets[0].data = tempData;
+            window.sensorChart.data.datasets[1].data = humidityData;
+            window.sensorChart.data.datasets[2].data = aqData;
+            window.sensorChart.update();
+          } else {
+            window.sensorChart = new Chart(ctx, {
+              type: "line",
+              data: {
+                labels: labels,
+                datasets: [
+                  {
+                    label: "Temperature (°C)",
+                    data: tempData,
+                    borderColor: "rgb(239, 68, 68)",
+                    backgroundColor: "rgba(239, 68, 68, 0.1)",
+                    tension: 0.3,
+                    fill: true,
+                  },
+                  {
+                    label: "Humidity (%)",
+                    data: humidityData,
+                    borderColor: "rgb(59, 130, 246)",
+                    backgroundColor: "rgba(59, 130, 246, 0.1)",
+                    tension: 0.3,
+                    fill: true,
+                  },
+                  {
+                    label: "Air Quality",
+                    data: aqData,
+                    borderColor: "rgb(16, 185, 129)",
+                    backgroundColor: "rgba(16, 185, 129, 0.1)",
+                    tension: 0.3,
+                    fill: true,
+                  },
+                ],
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                  mode: "index",
+                  intersect: false,
+                },
+                plugins: {
+                  legend: {
+                    position: "top",
+                  },
+                  tooltip: {
+                    usePointStyle: true,
+                  },
+                },
+                scales: {
+                  y: {
+                    beginAtZero: true,
+                  },
+                },
+              },
+            });
+          }
+        }
+
+        // ✅ Start fetching data
+        loadHistoricalData(); // ← This was missing
+        fetchSensorData();
+      });
+    </script>
+  </body>
+</html>
